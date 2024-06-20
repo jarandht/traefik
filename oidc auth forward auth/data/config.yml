@@ -1,0 +1,44 @@
+http:
+  routers:
+    app:
+      entryPoints:
+        - "https"
+      rule: "Host(`notes`)"
+      middlewares:
+        - default-headers
+        - auth
+      tls: {}
+      service: notes
+
+  services:
+    app:
+      loadBalancer:
+        servers:
+          - url: "protocol/ip/port"
+
+  middlewares:
+    default-headers:
+      headers:
+        frameDeny: true
+        browserXssFilter: true
+        contentTypeNosniff: true
+        forceSTSHeader: true
+        stsIncludeSubdomains: true
+        stsPreload: true
+        stsSeconds: 15552000
+        customFrameOptionsValue: SAMEORIGIN
+        customRequestHeaders:
+          X-Forwarded-Proto: https
+
+    ip-whitelist:
+      ipWhiteList:
+        sourceRange:
+        - "subnet"
+
+    # forward auth to oauth proxy.
+    auth:
+      forwardAuth:
+        address: "http://auth:4181"
+        trustForwardHeader: true
+        authResponseHeaders:
+          - "X-Forwarded-User"

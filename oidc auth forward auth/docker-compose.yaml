@@ -1,0 +1,50 @@
+services:
+  traefik:
+    image: traefik:latest
+    container_name: traefik
+    restart: always
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - proxy
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./data/traefik.yml:/traefik.yml:ro
+      - ./data/acme.json:/acme.json
+      - ./data/config.yml:/config.yml:ro
+
+  auth:
+    container_name: auth
+    image: thomseddon/traefik-forward-auth:latest
+    depends_on:
+      - traefik
+    networks:
+      - proxy
+    environment:
+      - DEFAULT_PROVIDER=oidc
+
+      # Identity provider
+            # Authentik: OpenID Configuration Issuer URL, https://AUTENTIK-SERVER/application/o/APPLICATION/
+            # For Entra ID / Azure AD: https://login.microsoftonline.com/TENNANT-ID/v2.0
+      - PROVIDERS_OIDC_ISSUER_URL=
+
+      - PROVIDERS_OIDC_CLIENT_ID= # Client ID / Application ID
+      - PROVIDERS_OIDC_CLIENT_SECRET= # Client Secret / SecretValue
+      - COOKIE_DOMAIN= # Application domain / name
+      - LOG_LEVEL=debug
+
+      # Randm grnerated cookie secret
+      # To generate bash: openssl rand -base64 24
+      - SECRET=+X6F82tNXx5tXjKWq3MFX+rhHV4OAUjn
+
+      # Application URL Have same redirect URI / Reply address in authentik / Azure application.
+      - OAUTH2_PROXY_REDIRECT_URL=https://APPLICATION/_oauth
+    restart: unless-stopped
+
+networks:
+  proxy:
+    external: true
