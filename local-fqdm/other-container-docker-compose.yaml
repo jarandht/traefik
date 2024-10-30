@@ -2,7 +2,7 @@ services:
   app:
     image: YOUR_IMAGE
     labels:
-      - traefik.http.services.app.loadbalancer.server.port=YOUR_PORTNUMBER
+      - traefik.http.services.SERVICE_NAME.loadbalancer.server.port=YOUR_PORTNUMBER
       - traefik.enable=true
       - traefik-http.routers.SERVICE_NAME.tls=true
       - traefik.http.routers.SERVICE_NAME.tls.certresolver=cloudflare
