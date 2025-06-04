@@ -1,0 +1,30 @@
+tls:
+  certificates:
+    - certFile: /certs/cert.pem
+      keyFile: /certs/key.pem
+      stores:
+        - default
+  stores:
+    default:
+      defaultCertificate:
+        certFile: /certs/cert.pem
+        keyFile: /certs/key.pem
+      defaultGeneratedCert:
+        resolver: test
+        domain:
+          main: notes
+          sans:
+            - notes.adm.voss.kommune.no
+
+http:
+  routers:
+    notes:
+      entryPoints:
+        - "https"
+      rule: "Host(`notes`)"
+      middlewares:
+        - default-headers
+        - auth
+      tls:
+        test:
+      service: notes
