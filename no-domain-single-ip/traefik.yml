@@ -1,0 +1,63 @@
+log:
+ level: ERROR
+
+entryPoints:
+  web:
+    address: ":443"
+  api:
+    address: ":9000"
+
+serversTransport:
+  insecureSkipVerify: true
+
+providers:
+  file:
+    filename: /etc/traefik/traefik.yml
+
+http:
+  #region routers 
+  routers:
+    minio:
+      entryPoints:
+        - "web"
+      rule: "Host(`192.168.192.123`)"
+      tls: ""
+      service: web
+
+    s3:
+      entryPoints:
+        - "api"
+      rule: "Host(`192.168.192.123`)"
+      tls: ""
+      service: api
+
+  #Services
+  services:
+    web:
+      loadBalancer:
+        servers:
+          - url: https://10.40.0.101:9001
+          - url: https://10.40.0.102:9001
+          - url: https://10.40.0.103:9001
+          - url: https://10.40.0.104:9001
+        healthCheck:
+          path: /loign
+          interval: 10s
+          timeout: 3s
+        sticky:
+          cookie:
+            name: "minio_session"
+            secure: true
+            httpOnly: true
+
+    api:
+      loadBalancer:
+        servers:
+          - url: https://10.40.0.101:9000
+          - url: https://10.40.0.102:9000
+          - url: https://10.40.0.103:9000
+          - url: https://10.40.0.104:9000
+        healthCheck:
+          path: /minio/health/live
+          interval: 10s
+          timeout: 3s
